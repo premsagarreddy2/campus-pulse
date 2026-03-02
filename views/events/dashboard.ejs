@@ -1,0 +1,170 @@
+<%- include('../partials/header') %>
+
+  <div class="page-header">
+    <h1>Discover <span>Campus Events</span></h1>
+    <p>Find, register, and attend events happening across your campus</p>
+  </div>
+
+  <% if (user && (user.role==='admin' || user.role==='coordinator' )) { %>
+    <div
+      style="margin:0 2rem 1.5rem;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:12px;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
+      <span style="font-size:0.9rem">Logged in as <strong style="color:var(--accent)">
+          <%= user.role==='admin' ? '👑 Admin' : '🎯 Coordinator' %>
+        </strong> — you can create and manage events</span>
+      <a href="/events/new" class="btn btn-primary btn-sm" style="width:auto">+ New Event</a>
+    </div>
+    <% } %>
+
+      <!-- Filters -->
+      <form id="filter-form" action="/events" method="GET">
+        <div class="filters">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="search" placeholder="Search events..." value="<%= search %>"
+              oninput="this.form.submit()">
+          </div>
+          <select class="filter-select" name="status" onchange="this.form.submit()">
+            <% ['All','Upcoming','Ongoing','Completed'].forEach(s=> { %>
+              <option value="<%= s %>" <%=status===s ? 'selected' : '' %>><%= s %> Status</option>
+              <% }) %>
+          </select>
+          <% if (category !=='All' ) { %>
+            <input type="hidden" name="category" value="<%= category %>">
+            <% } %>
+        </div>
+
+        <!-- Category Pills -->
+        <% const catMeta=[ { val: 'All' , cls: 'all' , label: 'All' }, { val: 'Technical' , cls: 'tech' ,
+          label: 'Technical' }, { val: 'Non-Technical' , cls: 'non' , label: 'Non-Technical' }, { val: 'Sports' ,
+          cls: 'sports' , label: 'Sports' }, { val: 'Cultural' , cls: 'cultural' , label: 'Cultural' }, {
+          val: 'Workshop' , cls: 'workshop' , label: 'Workshop' }, { val: 'Other' , cls: 'other' , label: 'Other' } ];
+          %>
+          <div class="cat-pills">
+            <% catMeta.forEach(c=> { %>
+              <a href="/events?search=<%= search %>&status=<%= status %>&category=<%= c.val %>"
+                class="cat-pill <%= c.cls %> <%= category === c.val ? 'active' : '' %>">
+                <%= c.label %>
+              </a>
+              <% }) %>
+          </div>
+
+      </form>
+
+      <!-- Events Grid -->
+      <div class="events-grid">
+        <% if (events.length===0) { %>
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <h3 style="font-family:'Syne',sans-serif;margin-bottom:0.5rem">No events found</h3>
+            <p>Try changing your filters or search term</p>
+          </div>
+          <% } else { %>
+            <% events.forEach(event=> { %>
+              <div class="event-card">
+                <div class="card-img">
+                  <% if (event.image) { %>
+                    <img src="<%= event.image %>" alt="<%= event.title %>">
+                    <% } else { %>
+                      <span>
+                        <%= event.catEmoji %>
+                      </span>
+                      <% } %>
+                </div>
+
+                <div class="card-body">
+                  <div class="card-meta">
+                    <span class="badge badge-<%= event.category %>">
+                      <%= event.catEmoji %>
+                        <%= event.category %>
+                    </span>
+                    <span class="badge badge-<%= event.status %>">
+                      <%= event.status %>
+                    </span>
+                  </div>
+
+                  <div class="card-title">
+                    <%= event.title %>
+                  </div>
+                  <div class="card-desc">
+                    <%= event.description %>
+                  </div>
+
+                  <div class="card-details">
+                    <span>📅 <%= new Date(event.date).toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'})
+                        %></span>
+                    <span>📍 <%= event.venue %></span>
+                    <span>⏱ <%= event.durationHours %>h &nbsp;|&nbsp; 👥 <%= event.registeredStudents.length %>
+                          registered</span>
+                  </div>
+
+                  <% if (event.maxSeats> 0) { %>
+                    <div class="seats-info">
+                      <div class="seats-text">
+                        <% if (event.isFull) { %>
+                          <span style="color:var(--red)">Full</span>
+                          <% } else { %>
+                            <%= event.seatsLeft %> seats left / <%= event.maxSeats %>
+                                <% } %>
+                      </div>
+                      <div class="seats-bar">
+                        <div class="seats-fill"
+                          style="width:<%= event.seatsPct %>%;background:<%= event.seatsPct > 90 ? 'var(--red)' : event.seatsPct > 60 ? 'var(--yellow)' : 'var(--accent)' %>">
+                        </div>
+                      </div>
+                    </div>
+                    <% } %>
+
+                      <!-- Action buttons -->
+                      <% if (user && user.role==='student' ) { %>
+                        <% if (myRegisteredIds && myRegisteredIds.has(event._id.toString())) { %>
+                          <a href="/events/<%= event._id %>" class="btn btn-registered">✓ Registered — View Details</a>
+                          <% } else if (event.status==='Completed' ) { %>
+                            <button class="btn btn-muted" disabled>Event Ended</button>
+                            <% } else if (event.isFull) { %>
+                              <button class="btn btn-muted" disabled>Event Full</button>
+                              <% } else { %>
+                                <a href="/events/<%= event._id %>" class="btn btn-primary">Register Now →</a>
+                                <% } %>
+                                  <% } else if (user && (user.role==='admin' || user.role==='coordinator' )) { %>
+                                    <div class="btn-group" style="flex-wrap:wrap;gap:0.4rem">
+                                      <a href="/events/<%= event._id %>/scan" class="btn btn-primary btn-sm"
+                                        style="width:auto;flex:1;background:linear-gradient(135deg,#6366f1,#8b5cf6)">📷
+                                        Scan Entry QR</a>
+                                      <a href="/events/<%= event._id %>/participants" class="btn btn-outline btn-sm"
+                                        style="flex:1">👥 Attendance</a>
+                                      <a href="/events/<%= event._id %>/qr" class="btn btn-outline btn-sm"
+                                        style="width:auto">📱 QR</a>
+                                      <a href="/events/<%= event._id %>/edit" class="btn btn-outline btn-sm"
+                                        style="width:auto">✏️</a>
+                                    </div>
+                                    <% } else { %>
+                                      <a href="/events/<%= event._id %>" class="btn btn-outline">View Event</a>
+                                      <% } %>
+
+                </div>
+              </div>
+              <% }) %>
+                <% } %>
+      </div>
+
+      <!-- Pagination -->
+      <% if (pages> 1) { %>
+        <div class="pagination">
+          <% if (currentPage> 1) { %>
+            <a href="/events?page=<%= currentPage-1 %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
+              class="page-link">← Prev</a>
+            <% } %>
+              <% for (let i=1; i <=pages; i++) { %>
+                <a href="/events?page=<%= i %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
+                  class="page-link <%= i === currentPage ? 'active' : '' %>">
+                  <%= i %>
+                </a>
+                <% } %>
+                  <% if (currentPage < pages) { %>
+                    <a href="/events?page=<%= currentPage+1 %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
+                      class="page-link">Next →</a>
+                    <% } %>
+        </div>
+        <% } %>
+
+          <%- include('../partials/footer') %>

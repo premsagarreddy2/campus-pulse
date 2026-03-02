@@ -1,0 +1,56 @@
+<%- include('../partials/header') %>
+
+<div style="max-width:480px;margin:2rem auto;padding:0 1rem">
+  <a href="/events/my-events" style="color:var(--muted);text-decoration:none;font-size:0.88rem">← Back to My Events</a>
+
+  <div class="qr-card" style="margin-top:1.5rem;text-align:center">
+
+    <div style="width:64px;height:64px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 1rem">🎫</div>
+
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:0.3rem">Your Entry QR Code</h2>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:0.25rem">
+      <strong style="color:var(--text)"><%= event.title %></strong>
+    </p>
+    <p style="color:var(--muted);font-size:0.8rem;margin-bottom:1.5rem">
+      📅 <%= new Date(event.date).toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'}) %>
+      &nbsp;|&nbsp; 📍 <%= event.venue %>
+    </p>
+
+    <!-- QR Code — generated server-side, no CDN required -->
+    <div style="display:flex;justify-content:center;margin-bottom:1.2rem">
+      <div style="background:#fff;padding:16px;border-radius:16px;display:inline-block;box-shadow:0 4px 24px rgba(0,0,0,0.25)">
+        <img src="<%= qrDataURL %>" width="240" height="240" alt="Entry QR Code" style="display:block" />
+      </div>
+    </div>
+
+    <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:1rem;margin-bottom:1.2rem">
+      <p style="color:#a5b4fc;font-size:0.9rem;font-weight:600;margin-bottom:0.3rem">📲 Show this QR at the event entrance</p>
+      <p style="color:var(--muted);font-size:0.78rem">The coordinator will scan it to approve your entry and mark attendance automatically</p>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:left;margin-bottom:1.5rem">
+      <p style="font-size:0.78rem;color:var(--muted);line-height:2">
+        <strong style="color:var(--text)">How it works:</strong><br>
+        1. Open this page when you arrive at the event<br>
+        2. Show your QR code to the coordinator at the entrance<br>
+        3. They scan it — your attendance is marked automatically<br>
+        4. This QR is unique to you for this event only
+      </p>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+      <a href="/events/my-events" class="btn btn-outline btn-sm" style="width:auto">← My Events</a>
+      <button onclick="window.print()" class="btn btn-primary btn-sm" style="width:auto;background:linear-gradient(135deg,#6366f1,#8b5cf6)">🖨️ Save / Print</button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@media print {
+  .navbar, .footer, a.btn, button { display:none !important; }
+  .qr-card { border:none; box-shadow:none; }
+}
+</style>
+
+<%- include('../partials/footer') %>

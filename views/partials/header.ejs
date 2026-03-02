@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= title %></title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar">
+  <a href="/events" class="logo">campus<span>pulse</span></a>
+  <% if (user) { %>
+  <div class="nav-right">
+    <span class="nav-user">
+      <%= user.role === 'admin' ? '👑' : user.role === 'coordinator' ? '🎯' : '🎓' %>
+      <%= user.name %>
+    </span>
+    <% if (user.role === 'student') { %>
+      <a href="/events/my-events" class="nav-btn">My Events</a>
+    <% } %>
+    <% if (user.role === 'admin' || user.role === 'coordinator') { %>
+      <a href="/events/new" class="nav-btn primary">+ Create Event</a>
+    <% } %>
+    <% if (user.role === 'admin') { %>
+      <a href="/auth/admin/create-user" class="nav-btn">Manage Users</a>
+    <% } %>
+    <a href="/auth/logout" class="nav-btn danger">Logout</a>
+  </div>
+  <% } %>
+</nav>
+
+<% if (success && success.length) { %>
+  <div class="flash flash-success"><%= success[0] %></div>
+<% } %>
+<% if (error && error.length) { %>
+  <div class="flash flash-error"><%= error[0] %></div>
+<% } %>

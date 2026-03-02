@@ -1,0 +1,79 @@
+<%- include('../partials/header') %>
+
+<div class="my-events-container" style="padding-top:2rem">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+    <div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800">My Events</h1>
+      <p style="color:var(--muted);margin-top:0.3rem">Track your registrations and attendance</p>
+    </div>
+    <a href="/events" class="btn btn-outline btn-sm" style="width:auto">← All Events</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num"><%= stats.total %></div>
+      <div class="stat-label">Registered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--yellow)"><%= stats.upcoming %></div>
+      <div class="stat-label">Upcoming</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)"><%= stats.attended %></div>
+      <div class="stat-label">Attended</div>
+    </div>
+  </div>
+
+  <!-- Events List -->
+  <% if (events.length === 0) { %>
+    <div class="empty-state" style="padding:3rem">
+      <div class="empty-icon">📭</div>
+      <h3 style="font-family:'Syne',sans-serif;margin-bottom:0.5rem">No events yet</h3>
+      <p>Browse and register for events on the dashboard</p>
+      <a href="/events" class="btn btn-primary" style="width:auto;margin-top:1rem">Browse Events</a>
+    </div>
+  <% } else { %>
+    <div class="events-list">
+      <% events.forEach(event => { %>
+        <div class="event-row">
+          <div class="event-emoji"><%= event.catEmoji %></div>
+          <div class="event-info">
+            <div class="ev-title">
+              <a href="/events/<%= event._id %>" style="color:inherit;text-decoration:none"><%= event.title %></a>
+            </div>
+            <div class="ev-meta">
+              <span>📅 <%= new Date(event.date).toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'}) %></span>
+              <span>📍 <%= event.venue %></span>
+              <span>⏱ <%= event.durationHours %>h</span>
+            </div>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.4rem">
+              <span class="badge badge-<%= event.status %>"><%= event.status %></span>
+              <span class="badge badge-<%= event.category %>"><%= event.catEmoji %> <%= event.category %></span>
+              <% if (event.hasAttended) { %>
+                <span class="badge" style="background:rgba(34,197,94,0.12);color:var(--green);border:1px solid rgba(34,197,94,0.25)">✓ Attended</span>
+              <% } %>
+            </div>
+          </div>
+          <div style="text-align:right;min-width:160px">
+            <a href="/events/<%= event._id %>/my-qr" class="btn btn-primary btn-sm"
+              style="width:auto;margin-bottom:0.5rem;display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+              📲 Show Entry QR
+            </a>
+            <% if (event.hasAttended) { %>
+              <br><span class="badge" style="background:rgba(34,197,94,0.12);color:var(--green);font-size:0.8rem;padding:0.4rem 0.75rem;margin-top:0.3rem;display:inline-block">✅ Attended</span>
+            <% } else if (event.status === 'Upcoming') { %>
+              <br><span style="font-size:0.78rem;color:var(--muted)">Starts <%= new Date(event.date).toLocaleDateString('en-IN') %></span>
+            <% } else if (event.status === 'Ongoing') { %>
+              <br><span style="font-size:0.78rem;color:var(--yellow)">🔴 Live Now</span>
+            <% } else { %>
+              <br><span style="font-size:0.78rem;color:var(--muted)">Completed</span>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,109 @@
+<%- include('../partials/header') %>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <div style="max-width:520px;margin:2rem auto;padding:0 1rem">
+    <a href="/events/<%= event._id %>/participants" style="color:var(--muted);text-decoration:none;font-size:0.88rem">←
+      Back to Participants</a>
+
+    <div style="margin-top:1.5rem">
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem">
+        <div
+          style="width:48px;height:48px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">
+          📷</div>
+        <div>
+          <h1 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800">Scan Entry QR</h1>
+          <p style="color:var(--muted);font-size:0.83rem">
+            <%= event.title %>
+          </p>
+        </div>
+      </div>
+
+      <!-- Camera Scanner -->
+      <div class="qr-card" style="margin-top:1.2rem;padding:1.5rem">
+        <p style="color:var(--muted);font-size:0.83rem;margin-bottom:1rem;text-align:center">Point camera at student's
+          QR code</p>
+        <div id="reader" style="border-radius:12px;overflow:hidden;width:100%"></div>
+        <p id="scan-status" style="text-align:center;margin-top:0.8rem;font-size:0.83rem;color:var(--muted)">
+          Initializing camera...</p>
+      </div>
+
+      <!-- Result card (shown after scan) -->
+      <div id="result-card" style="display:none;margin-top:1.2rem" class="qr-card">
+        <div id="result-icon" style="font-size:3rem;text-align:center;margin-bottom:0.5rem"></div>
+        <h3 id="result-title"
+          style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;text-align:center;margin-bottom:1rem">
+        </h3>
+        <div id="result-details"
+          style="background:var(--bg);border-radius:10px;padding:0.8rem;font-size:0.85rem;line-height:2;margin-bottom:1rem">
+        </div>
+        <button onclick="resetScanner()" class="btn btn-primary btn-sm"
+          style="width:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+          📷 Scan Next Student
+        </button>
+      </div>
+
+      <!-- Flash messages are handled by header partial already -->
+
+      <div
+        style="margin-top:1.2rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem">
+        <p style="font-size:0.78rem;color:var(--muted);line-height:1.9">
+          <strong style="color:var(--text)">Instructions:</strong><br>
+          1. Ask the student to open their <strong>My Events → Show Entry QR</strong><br>
+          2. Point this camera at their QR code<br>
+          3. Entry is approved automatically and attendance is marked<br>
+          4. Each student's QR is unique — duplicates are rejected
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const EVENT_ID = "<%= event._id %>";
+    let html5QrCode;
+    let scanning = true;
+
+    function startScanner() {
+      document.getElementById("result-card").style.display = "none";
+      document.getElementById("scan-status").textContent = "Initializing camera...";
+      scanning = true;
+
+      html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        (decodedText) => {
+          if (!scanning) return;
+          scanning = false;
+          html5QrCode.stop().catch(() => { });
+          handleScan(decodedText);
+        },
+        () => { }
+      ).then(() => {
+        document.getElementById("scan-status").textContent = "✅ Camera ready — waiting for QR";
+      }).catch(() => {
+        document.getElementById("scan-status").textContent = "⚠️ Camera unavailable. Ask student to show QR and enter URL manually.";
+      });
+    }
+
+    async function handleScan(decodedText) {
+      document.getElementById("scan-status").textContent = "⏳ Verifying...";
+
+      // The QR URL looks like: /events/:id/verify-entry/:token
+      // Extract token from URL or use as-is if it's just the token
+      let verifyUrl = decodedText;
+
+      // Navigate to the verify URL — server handles everything
+      window.location.href = verifyUrl;
+    }
+
+    function resetScanner() {
+      document.getElementById("result-card").style.display = "none";
+      document.getElementById("reader").innerHTML = "";
+      startScanner();
+    }
+
+    startScanner();
+  </script>
+
+  <%- include('../partials/footer') %>
