@@ -9,21 +9,38 @@
 </head>
 <body>
 <nav class="navbar">
-  <a href="/events" class="logo">campus<span>pulse</span></a>
+  <% if (org) { %>
+    <a href="/<%= org.slug %>/events" class="logo">
+      <% if (org.logo) { %>
+        <img src="<%= org.logo %>" alt="<%= org.name %>" style="height:24px;width:24px;border-radius:6px;object-fit:cover;margin-right:6px;vertical-align:middle">
+      <% } %>
+      <%= org.name %>
+    </a>
+  <% } else { %>
+    <a href="/" class="logo">campus<span>pulse</span></a>
+  <% } %>
+
   <% if (user) { %>
   <div class="nav-right">
-    <span class="nav-user">
-      <%= user.role === 'admin' ? '👑' : user.role === 'coordinator' ? '🎯' : '🎓' %>
-      <%= user.name %>
-    </span>
-    <% if (user.role === 'student') { %>
-      <a href="/events/my-events" class="nav-btn">My Events</a>
-    <% } %>
-    <% if (user.role === 'admin' || user.role === 'coordinator') { %>
-      <a href="/events/new" class="nav-btn primary">+ Create Event</a>
-    <% } %>
-    <% if (user.role === 'admin') { %>
-      <a href="/auth/admin/create-user" class="nav-btn">Manage Users</a>
+    <% if (org && userRole) { %>
+      <span class="nav-user">
+        <%= userRole === 'admin' ? '👑' : userRole === 'coordinator' ? '🎯' : '🎓' %>
+        <%= user.name %>
+      </span>
+      <% if (userRole === 'student') { %>
+        <a href="/<%= org.slug %>/events/my-events" class="nav-btn">My Events</a>
+      <% } %>
+      <% if (userRole === 'admin' || userRole === 'coordinator') { %>
+        <a href="/<%= org.slug %>/events/new" class="nav-btn primary">+ Create Event</a>
+      <% } %>
+      <% if (userRole === 'admin') { %>
+        <a href="/<%= org.slug %>/manage" class="nav-btn">⚙️ Manage</a>
+      <% } %>
+      <a href="/my-organizations" class="nav-btn" title="Switch Organization">🔄 Orgs</a>
+    <% } else { %>
+      <span class="nav-user"><%= user.name %></span>
+      <a href="/my-organizations" class="nav-btn">My Organizations</a>
+      <a href="/create-organization" class="nav-btn primary">+ Create Org</a>
     <% } %>
     <a href="/auth/logout" class="nav-btn danger">Logout</a>
   </div>

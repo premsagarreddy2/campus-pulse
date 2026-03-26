@@ -14,13 +14,9 @@ const userSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true,
-        },
-        role: {
-            type: String,
-            enum: ["student", "coordinator", "admin"],
-            default: "student"
         }
-
+        // NOTE: role has been removed from User model.
+        // Roles are now per-organization, stored in Organization.members[].role
     },
     { timestamps: true }
 );

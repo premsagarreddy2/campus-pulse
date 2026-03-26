@@ -5,6 +5,7 @@ const flash = require("connect-flash");
 const methodOverride = require("method-override");
 const path = require("path");
 const connectDB = require("./config/db");
+const { resolveOrg } = require("./middleware/orgMiddleware");
 
 dotenv.config();
 
@@ -39,17 +40,28 @@ app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
+    // Default: no org context (set by orgMiddleware when inside /:slug)
+    res.locals.org = null;
+    res.locals.basePath = "";
+    res.locals.userRole = null;
     next();
 });
 
-// Routes
+// ====== FIXED ROUTES (no slug — registered first to avoid collisions) ======
 app.use("/auth", require("./routes/authRoutes"));
-app.use("/events", require("./routes/eventRoutes"));
+app.use("/", require("./routes/orgRoutes")); // handles /, /create-organization, /my-organizations
 
-// Home redirect
-app.get("/", (req, res) => {
-    if (req.session.user) return res.redirect("/events");
-    res.redirect("/auth/login");
+// ====== SLUG-SCOPED ROUTES (/:slug) ======
+app.use("/:slug/auth", resolveOrg, require("./routes/orgAuthRoutes"));
+app.use("/:slug/events", resolveOrg, require("./routes/eventRoutes"));
+app.use("/:slug/manage", resolveOrg, require("./routes/orgManageRoutes"));
+
+// /:slug root — redirect to events dashboard
+app.get("/:slug", resolveOrg, (req, res) => {
+    if (req.org) {
+        return res.redirect(`/${req.org.slug}/events`);
+    }
+    res.status(404).render("404", { title: "Page Not Found" });
 });
 
 // 404

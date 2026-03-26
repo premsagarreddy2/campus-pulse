@@ -2,11 +2,22 @@
 
   <div class="auth-page">
     <div class="auth-card">
-      <!-- <div class="auth-logo">campus<span>pulse</span></div> -->
-      <h2 class="auth-title">Welcome back</h2>
-      <p class="auth-sub">Sign in to access your campus events</p>
+      <% if (org) { %>
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <% if (org.logo) { %>
+            <img src="<%= org.logo %>" alt="<%= org.name %>" style="width:48px;height:48px;border-radius:12px;object-fit:cover;margin-bottom:0.75rem">
+          <% } else { %>
+            <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:0.75rem"><%= org.name.charAt(0).toUpperCase() %></div>
+          <% } %>
+          <h2 class="auth-title">Sign in to <%= org.name %></h2>
+          <p class="auth-sub">Access events at this organization</p>
+        </div>
+      <% } else { %>
+        <h2 class="auth-title">Welcome back</h2>
+        <p class="auth-sub">Sign in to access your campus events</p>
+      <% } %>
 
-      <form action="/auth/login" method="POST">
+      <form action="<%= org ? '/' + org.slug + '/auth/login' : '/auth/login' %>" method="POST">
         <div class="form-group">
           <label for="email">Email Address</label>
           <input type="email" id="email" name="email" placeholder="you@college.edu" required autocomplete="email">
@@ -15,22 +26,21 @@
           <label for="password">Password</label>
           <input type="password" id="password" name="password" placeholder="••••••••" required>
         </div>
-        <div class="form-group">
-          <label for="role">Login As</label>
-          <select id="role" name="role">
-            <option value="student">🎓 Student</option>
-            <option value="coordinator">🎯 Coordinator</option>
-            <option value="admin">👑 Admin</option>
-          </select>
-        </div>
         <div class="form-submit">
           <button type="submit" class="btn btn-primary">Sign In</button>
         </div>
       </form>
 
       <p class="form-link">
-        Don't have an account? <a href="/auth/register">Register here</a>
+        Don't have an account?
+        <a href="<%= org ? '/' + org.slug + '/auth/register' : '/auth/register' %>">Register here</a>
       </p>
+
+      <% if (org) { %>
+        <p class="form-link" style="margin-top:0.5rem">
+          <a href="/auth/login" style="color:var(--muted);font-size:0.8rem">Use global login instead →</a>
+        </p>
+      <% } %>
     </div>
   </div>
 

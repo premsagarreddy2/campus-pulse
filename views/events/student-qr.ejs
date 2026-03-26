@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 
 <div style="max-width:480px;margin:2rem auto;padding:0 1rem">
-  <a href="/events/my-events" style="color:var(--muted);text-decoration:none;font-size:0.88rem">← Back to My Events</a>
+  <a href="<%= basePath %>/events/my-events" style="color:var(--muted);text-decoration:none;font-size:0.88rem">← Back to My Events</a>
 
   <div class="qr-card" style="margin-top:1.5rem;text-align:center">
 
@@ -16,7 +16,7 @@
       &nbsp;|&nbsp; 📍 <%= event.venue %>
     </p>
 
-    <!-- QR Code — generated server-side, no CDN required -->
+    <!-- QR Code -->
     <div style="display:flex;justify-content:center;margin-bottom:1.2rem">
       <div style="background:#fff;padding:16px;border-radius:16px;display:inline-block;box-shadow:0 4px 24px rgba(0,0,0,0.25)">
         <img src="<%= qrDataURL %>" width="240" height="240" alt="Entry QR Code" style="display:block" />
@@ -39,7 +39,7 @@
     </div>
 
     <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
-      <a href="/events/my-events" class="btn btn-outline btn-sm" style="width:auto">← My Events</a>
+      <a href="<%= basePath %>/events/my-events" class="btn btn-outline btn-sm" style="width:auto">← My Events</a>
       <button onclick="window.print()" class="btn btn-primary btn-sm" style="width:auto;background:linear-gradient(135deg,#6366f1,#8b5cf6)">🖨️ Save / Print</button>
     </div>
 

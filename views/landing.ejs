@@ -1,0 +1,111 @@
+<%- include('partials/header') %>
+
+<div class="landing-hero">
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🚀 Event Management Platform</div>
+    <h1 class="hero-title">
+      Your Events.<br>
+      <span>Your Platform.</span>
+    </h1>
+    <p class="hero-subtitle">
+      Create your own event portal with a unique URL. Manage registrations,
+      QR-based attendance, and more — all under your brand.
+    </p>
+    <div class="hero-actions">
+      <% if (user) { %>
+        <a href="/create-organization" class="btn btn-primary hero-btn">+ Create Your Organization</a>
+        <a href="/my-organizations" class="btn btn-outline hero-btn">My Organizations</a>
+      <% } else { %>
+        <a href="/auth/register" class="btn btn-primary hero-btn">Get Started Free →</a>
+        <a href="/auth/login" class="btn btn-outline hero-btn">Sign In</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<section class="landing-features">
+  <div class="features-header">
+    <h2>Everything you need to <span>manage events</span></h2>
+    <p>A complete toolkit for organizing, managing, and tracking campus events</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🏢</div>
+      <h3>Your Own Portal</h3>
+      <p>Get a unique URL for your organization. Share it with your community to discover and register for events.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>QR Attendance</h3>
+      <p>Automatic QR-based attendance tracking. Students scan to mark attendance — no manual entry needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <h3>Role-Based Access</h3>
+      <p>Admins, coordinators, and students — each with the right permissions within your organization.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Real-Time Tracking</h3>
+      <p>Live registrations, seat availability, attendance rates — all at your fingertips.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3>Event Categories</h3>
+      <p>Organize events by type — Technical, Cultural, Sports, Workshops, and more.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>Secure & Private</h3>
+      <p>Each organization's data is isolated. Your events, your members, your control.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Organizations -->
+<% if (organizations && organizations.length > 0) { %>
+<section class="landing-orgs">
+  <div class="orgs-header">
+    <h2>Active <span>Organizations</span></h2>
+    <p>Explore events from organizations already on Campus Pulse</p>
+  </div>
+  <div class="orgs-grid">
+    <% organizations.forEach(org => { %>
+      <a href="/<%= org.slug %>/auth/login" class="org-card">
+        <div class="org-card-logo">
+          <% if (org.logo) { %>
+            <img src="<%= org.logo %>" alt="<%= org.name %>">
+          <% } else { %>
+            <span><%= org.name.charAt(0).toUpperCase() %></span>
+          <% } %>
+        </div>
+        <div class="org-card-info">
+          <h3><%= org.name %></h3>
+          <p class="org-slug">/<%= org.slug %></p>
+          <div class="org-meta">
+            <span>👥 <%= org.memberCount %> members</span>
+          </div>
+        </div>
+        <div class="org-card-arrow">→</div>
+      </a>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<!-- CTA -->
+<section class="landing-cta">
+  <div class="cta-card">
+    <h2>Ready to manage your events?</h2>
+    <p>Create your organization in seconds and start managing events with Campus Pulse.</p>
+    <% if (user) { %>
+      <a href="/create-organization" class="btn btn-primary hero-btn">+ Create Organization</a>
+    <% } else { %>
+      <a href="/auth/register" class="btn btn-primary hero-btn">Sign Up Free →</a>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

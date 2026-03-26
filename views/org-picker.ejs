@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+
+<div class="picker-container">
+  <div class="picker-header">
+    <h1>My <span>Organizations</span></h1>
+    <p>Select an organization to manage its events</p>
+  </div>
+
+  <% if (organizations && organizations.length > 0) { %>
+    <div class="picker-grid">
+      <% organizations.forEach(org => { %>
+        <a href="/<%= org.slug %>/events" class="picker-card">
+          <div class="picker-card-top">
+            <div class="picker-logo">
+              <% if (org.logo) { %>
+                <img src="<%= org.logo %>" alt="<%= org.name %>">
+              <% } else { %>
+                <span><%= org.name.charAt(0).toUpperCase() %></span>
+              <% } %>
+            </div>
+            <span class="badge" style="background:color-mix(in srgb, var(--accent) 15%, transparent);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);">
+              <%= org.userRole === 'admin' ? '👑 Admin' : org.userRole === 'coordinator' ? '🎯 Coordinator' : '🎓 Student' %>
+            </span>
+          </div>
+          <h3><%= org.name %></h3>
+          <p class="picker-slug">/<%= org.slug %></p>
+          <div class="picker-meta">
+            <span>👥 <%= org.memberCount %> members</span>
+          </div>
+          <div class="picker-arrow">Enter →</div>
+        </a>
+      <% }) %>
+
+      <!-- Create new org card -->
+      <a href="/create-organization" class="picker-card picker-card-new">
+        <div class="picker-new-icon">+</div>
+        <h3>Create Organization</h3>
+        <p style="color:var(--muted);font-size:0.85rem">Start a new event portal</p>
+      </a>
+    </div>
+  <% } else { %>
+    <div class="empty-state" style="padding:4rem 2rem">
+      <div class="empty-icon">🏢</div>
+      <h3 style="font-family:'Syne',sans-serif;margin-bottom:0.5rem">No organizations yet</h3>
+      <p>Create your first organization or join one via an invite link</p>
+      <a href="/create-organization" class="btn btn-primary" style="width:auto;margin-top:1.5rem">+ Create Organization</a>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

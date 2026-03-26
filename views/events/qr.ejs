@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 
 <div class="qr-container">
-  <a href="/events/<%= event._id %>/participants" style="color:var(--muted);text-decoration:none;font-size:0.88rem">← Back to Participants</a>
+  <a href="<%= basePath %>/events/<%= event._id %>/participants" style="color:var(--muted);text-decoration:none;font-size:0.88rem">← Back to Participants</a>
 
   <div class="qr-card" style="margin-top:1.5rem">
     <h2 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:0.4rem">📱 Attendance QR Code</h2>
@@ -10,7 +10,7 @@
       <span class="badge badge-<%= event.category %>"><%= event.category %></span>
     </div>
 
-    <!-- QR Code — server-side generated, no CDN needed -->
+    <!-- QR Code -->
     <div class="qr-box">
       <div style="background:#fff;padding:16px;border-radius:12px;display:inline-block">
         <img src="<%= qrDataURL %>" width="240" height="240" alt="Event Attendance QR" style="display:block" />
@@ -25,15 +25,15 @@
     <div class="qr-url"><%= qrUrl %></div>
 
     <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center">
-      <a href="/events/<%= event._id %>/participants" class="btn btn-outline btn-sm" style="width:auto">👥 View Attendance</a>
-      <a href="/events/<%= event._id %>/scan" class="btn btn-primary btn-sm" style="width:auto;background:linear-gradient(135deg,#6366f1,#8b5cf6)">📷 Scan Student QR</a>
+      <a href="<%= basePath %>/events/<%= event._id %>/participants" class="btn btn-outline btn-sm" style="width:auto">👥 View Attendance</a>
+      <a href="<%= basePath %>/events/<%= event._id %>/scan" class="btn btn-primary btn-sm" style="width:auto;background:linear-gradient(135deg,#6366f1,#8b5cf6)">📷 Scan Student QR</a>
       <button onclick="window.print()" class="btn btn-outline btn-sm" style="width:auto">🖨️ Print QR</button>
     </div>
 
     <div style="margin-top:1.5rem;padding:1rem;background:var(--bg);border-radius:10px;border:1px solid var(--border);text-align:left">
       <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem"><strong style="color:var(--text)">How it works:</strong></p>
       <ol style="font-size:0.8rem;color:var(--muted);padding-left:1.2rem;line-height:2">
-        <li>Students must be logged in to Campus Pulse</li>
+        <li>Students must be logged in to the platform</li>
         <li>They scan this QR with their phone camera</li>
         <li>It opens a link that marks their attendance automatically</li>
         <li>They must be registered for this event</li>

@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+
+<div class="form-container">
+  <div class="form-card">
+    <h1>🏢 Create Organization</h1>
+    <p>Set up your event portal — you'll get a unique URL to share with your community</p>
+
+    <form action="/create-organization" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>Organization Name *</label>
+        <input type="text" name="name" placeholder="e.g. IIT Hyderabad, Tech Club, IEEE Chapter" required>
+      </div>
+
+      <div class="form-group">
+        <label>Custom URL Slug</label>
+        <div style="display:flex;align-items:center;gap:0;margin-top:0.25rem">
+          <span style="background:var(--surface2);border:1px solid var(--border);border-right:none;border-radius:var(--radius) 0 0 var(--radius);padding:0.65rem 0.75rem;font-size:0.85rem;color:var(--muted);white-space:nowrap">campuspulse.com/</span>
+          <input type="text" name="slug" placeholder="iit-hyderabad"
+            style="border-radius:0 var(--radius) var(--radius) 0;flex:1"
+            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+            title="Lowercase letters, numbers, and hyphens only">
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem">Leave empty to auto-generate from name. Use lowercase letters, numbers, and hyphens.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" placeholder="What does your organization do? Who are your members?" rows="3"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Logo (optional)</label>
+        <input type="file" name="logo" accept="image/*" style="color:var(--muted)">
+      </div>
+
+      <div style="background:color-mix(in srgb, var(--accent) 8%, transparent);border:1px solid color-mix(in srgb, var(--accent) 25%, transparent);border-radius:10px;padding:1rem;margin-bottom:1.5rem">
+        <p style="font-size:0.83rem;color:var(--muted);line-height:1.7">
+          <strong style="color:var(--accent)">👑 You'll be the admin.</strong> You can:<br>
+          • Create and manage events<br>
+          • Add coordinators and members<br>
+          • Track registrations and attendance<br>
+          • Share your unique org URL with your community
+        </p>
+      </div>
+
+      <div class="form-submit">
+        <button type="submit" class="btn btn-primary">Create Organization →</button>
+      </div>
+    </form>
+
+    <div style="margin-top:1rem">
+      <a href="/" class="btn btn-outline">← Back</a>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,22 +1,22 @@
 <%- include('../partials/header') %>
 
   <div class="page-header">
-    <h1>Discover <span>Campus Events</span></h1>
-    <p>Find, register, and attend events happening across your campus</p>
+    <h1>Discover <span><%= org ? org.name + ' Events' : 'Campus Events' %></span></h1>
+    <p>Find, register, and attend events<%= org ? ' at ' + org.name : '' %></p>
   </div>
 
-  <% if (user && (user.role==='admin' || user.role==='coordinator' )) { %>
+  <% if (user && (userRole==='admin' || userRole==='coordinator' )) { %>
     <div
       style="margin:0 2rem 1.5rem;background:color-mix(in srgb,var(--accent) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);border-radius:12px;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem">
       <span style="font-size:0.9rem">Logged in as <strong style="color:var(--accent)">
-          <%= user.role==='admin' ? '👑 Admin' : '🎯 Coordinator' %>
+          <%= userRole==='admin' ? '👑 Admin' : '🎯 Coordinator' %>
         </strong> — you can create and manage events</span>
-      <a href="/events/new" class="btn btn-primary btn-sm" style="width:auto">+ New Event</a>
+      <a href="<%= basePath %>/events/new" class="btn btn-primary btn-sm" style="width:auto">+ New Event</a>
     </div>
     <% } %>
 
       <!-- Filters -->
-      <form id="filter-form" action="/events" method="GET">
+      <form id="filter-form" action="<%= basePath %>/events" method="GET">
         <div class="filters">
           <div class="search-box">
             <span class="search-icon">🔍</span>
@@ -41,7 +41,7 @@
           %>
           <div class="cat-pills">
             <% catMeta.forEach(c=> { %>
-              <a href="/events?search=<%= search %>&status=<%= status %>&category=<%= c.val %>"
+              <a href="<%= basePath %>/events?search=<%= search %>&status=<%= status %>&category=<%= c.val %>"
                 class="cat-pill <%= c.cls %> <%= category === c.val ? 'active' : '' %>">
                 <%= c.label %>
               </a>
@@ -115,30 +115,25 @@
                     <% } %>
 
                       <!-- Action buttons -->
-                      <% if (user && user.role==='student' ) { %>
+                      <% if (user && userRole==='student' ) { %>
                         <% if (myRegisteredIds && myRegisteredIds.has(event._id.toString())) { %>
-                          <a href="/events/<%= event._id %>" class="btn btn-registered">✓ Registered — View Details</a>
+                          <a href="<%= basePath %>/events/<%= event._id %>" class="btn btn-registered">✓ Registered — View Details</a>
                           <% } else if (event.status==='Completed' ) { %>
                             <button class="btn btn-muted" disabled>Event Ended</button>
                             <% } else if (event.isFull) { %>
                               <button class="btn btn-muted" disabled>Event Full</button>
                               <% } else { %>
-                                <a href="/events/<%= event._id %>" class="btn btn-primary">Register Now →</a>
+                                <a href="<%= basePath %>/events/<%= event._id %>" class="btn btn-primary">Register Now →</a>
                                 <% } %>
-                                  <% } else if (user && (user.role==='admin' || user.role==='coordinator' )) { %>
+                                  <% } else if (user && (userRole==='admin' || userRole==='coordinator' )) { %>
                                     <div class="btn-group" style="flex-wrap:wrap;gap:0.4rem">
-                                      <a href="/events/<%= event._id %>/scan" class="btn btn-primary btn-sm"
-                                        style="width:auto;flex:1;background:linear-gradient(135deg,#6366f1,#8b5cf6)">📷
-                                        Scan Entry QR</a>
-                                      <a href="/events/<%= event._id %>/participants" class="btn btn-outline btn-sm"
+                                      <a href="<%= basePath %>/events/<%= event._id %>/participants" class="btn btn-outline btn-sm"
                                         style="flex:1">👥 Attendance</a>
-                                      <a href="/events/<%= event._id %>/qr" class="btn btn-outline btn-sm"
-                                        style="width:auto">📱 QR</a>
-                                      <a href="/events/<%= event._id %>/edit" class="btn btn-outline btn-sm"
+                                      <a href="<%= basePath %>/events/<%= event._id %>/edit" class="btn btn-outline btn-sm"
                                         style="width:auto">✏️</a>
                                     </div>
                                     <% } else { %>
-                                      <a href="/events/<%= event._id %>" class="btn btn-outline">View Event</a>
+                                      <a href="<%= basePath %>/events/<%= event._id %>" class="btn btn-outline">View Event</a>
                                       <% } %>
 
                 </div>
@@ -151,17 +146,17 @@
       <% if (pages> 1) { %>
         <div class="pagination">
           <% if (currentPage> 1) { %>
-            <a href="/events?page=<%= currentPage-1 %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
+            <a href="<%= basePath %>/events?page=<%= currentPage-1 %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
               class="page-link">← Prev</a>
             <% } %>
               <% for (let i=1; i <=pages; i++) { %>
-                <a href="/events?page=<%= i %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
+                <a href="<%= basePath %>/events?page=<%= i %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
                   class="page-link <%= i === currentPage ? 'active' : '' %>">
                   <%= i %>
                 </a>
                 <% } %>
                   <% if (currentPage < pages) { %>
-                    <a href="/events?page=<%= currentPage+1 %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
+                    <a href="<%= basePath %>/events?page=<%= currentPage+1 %>&search=<%= search %>&status=<%= status %>&category=<%= category %>"
                       class="page-link">Next →</a>
                     <% } %>
         </div>

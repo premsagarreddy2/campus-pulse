@@ -6,7 +6,7 @@
       <h1 style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800">My Events</h1>
       <p style="color:var(--muted);margin-top:0.3rem">Track your registrations and attendance</p>
     </div>
-    <a href="/events" class="btn btn-outline btn-sm" style="width:auto">← All Events</a>
+    <a href="<%= basePath %>/events" class="btn btn-outline btn-sm" style="width:auto">← All Events</a>
   </div>
 
   <!-- Stats -->
@@ -31,7 +31,7 @@
       <div class="empty-icon">📭</div>
       <h3 style="font-family:'Syne',sans-serif;margin-bottom:0.5rem">No events yet</h3>
       <p>Browse and register for events on the dashboard</p>
-      <a href="/events" class="btn btn-primary" style="width:auto;margin-top:1rem">Browse Events</a>
+      <a href="<%= basePath %>/events" class="btn btn-primary" style="width:auto;margin-top:1rem">Browse Events</a>
     </div>
   <% } else { %>
     <div class="events-list">
@@ -40,7 +40,7 @@
           <div class="event-emoji"><%= event.catEmoji %></div>
           <div class="event-info">
             <div class="ev-title">
-              <a href="/events/<%= event._id %>" style="color:inherit;text-decoration:none"><%= event.title %></a>
+              <a href="<%= basePath %>/events/<%= event._id %>" style="color:inherit;text-decoration:none"><%= event.title %></a>
             </div>
             <div class="ev-meta">
               <span>📅 <%= new Date(event.date).toLocaleString('en-IN', {dateStyle:'medium', timeStyle:'short'}) %></span>
@@ -56,7 +56,7 @@
             </div>
           </div>
           <div style="text-align:right;min-width:160px">
-            <a href="/events/<%= event._id %>/my-qr" class="btn btn-primary btn-sm"
+            <a href="<%= basePath %>/events/<%= event._id %>/my-qr" class="btn btn-primary btn-sm"
               style="width:auto;margin-bottom:0.5rem;display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6)">
               📲 Show Entry QR
             </a>

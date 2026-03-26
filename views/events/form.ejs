@@ -3,7 +3,7 @@
 <div class="form-container">
   <div class="form-card">
     <h1><%= event ? '✏️ Edit Event' : '🎉 Create New Event' %></h1>
-    <p><%= event ? 'Update the details for this event' : 'Fill in the details to publish a new campus event' %></p>
+    <p><%= event ? 'Update the details for this event' : 'Fill in the details to publish a new event' %></p>
 
     <form action="<%= formAction %>" method="<%= formMethod %>" enctype="multipart/form-data">
 
@@ -63,7 +63,7 @@
     </form>
 
     <div style="margin-top:1rem">
-      <a href="/events" class="btn btn-outline">← Cancel</a>
+      <a href="<%= basePath %>/events" class="btn btn-outline">← Cancel</a>
     </div>
   </div>
 </div>

@@ -8,6 +8,11 @@ const attendanceSchema = new mongoose.Schema({
 
 const eventSchema = new mongoose.Schema(
     {
+        organization: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Organization",
+            required: true
+        },
         title: { type: String, required: true },
         description: { type: String, required: true },
         date: { type: Date, required: true },

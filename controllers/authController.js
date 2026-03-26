@@ -1,21 +1,50 @@
 const User = require("../models/User");
+const Organization = require("../models/Organization");
 const bcrypt = require("bcryptjs");
 
-// GET /auth/login
+// GET /auth/login (global)
 exports.showLogin = (req, res) => {
-    if (req.session.user) return res.redirect("/events");
-    res.render("auth/login", { title: "Login — Campus Pulse" });
+    if (req.session.user) return res.redirect("/my-organizations");
+    res.render("auth/login", {
+        title: "Login — Campus Pulse",
+        orgSlug: null
+    });
 };
 
-// GET /auth/register
+// GET /:slug/auth/login (org-scoped)
+exports.showOrgLogin = (req, res) => {
+    if (req.session.user) {
+        // Check if already a member
+        if (req.userRole) {
+            return res.redirect(`/${req.org.slug}/events`);
+        }
+    }
+    res.render("auth/login", {
+        title: `Login — ${req.org.name}`,
+        orgSlug: req.org.slug
+    });
+};
+
+// GET /auth/register (global)
 exports.showRegister = (req, res) => {
-    if (req.session.user) return res.redirect("/events");
-    res.render("auth/register", { title: "Register — Campus Pulse" });
+    if (req.session.user) return res.redirect("/my-organizations");
+    res.render("auth/register", {
+        title: "Register — Campus Pulse",
+        orgSlug: null
+    });
 };
 
-// POST /auth/login
+// GET /:slug/auth/register (org-scoped)
+exports.showOrgRegister = (req, res) => {
+    res.render("auth/register", {
+        title: `Join ${req.org.name} — Campus Pulse`,
+        orgSlug: req.org.slug
+    });
+};
+
+// POST /auth/login (global)
 exports.loginUser = async (req, res) => {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
         if (!user) {
@@ -29,28 +58,77 @@ exports.loginUser = async (req, res) => {
             return res.redirect("/auth/login");
         }
 
-        if (role && user.role !== role) {
-            req.flash("error", "Role mismatch. Check your selected role.");
-            return res.redirect("/auth/login");
-        }
-
-        // Save user to session
+        // Save user to session (no role here — roles are per-org)
         req.session.user = {
             _id: user._id.toString(),
             name: user.name,
-            email: user.email,
-            role: user.role
+            email: user.email
         };
 
+        // Find user's organizations
+        const orgs = await Organization.find({ "members.user": user._id });
+
         req.flash("success", `Welcome back, ${user.name}! 👋`);
-        res.redirect("/events");
+
+        if (orgs.length === 1) {
+            return res.redirect(`/${orgs[0].slug}/events`);
+        } else if (orgs.length > 1) {
+            return res.redirect("/my-organizations");
+        } else {
+            // No orgs — go to landing/create
+            return res.redirect("/");
+        }
     } catch (err) {
         req.flash("error", "Server error. Please try again.");
         res.redirect("/auth/login");
     }
 };
 
-// POST /auth/register
+// POST /:slug/auth/login (org-scoped)
+exports.loginOrgUser = async (req, res) => {
+    const { email, password } = req.body;
+    const slug = req.org.slug;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            req.flash("error", "Invalid email or password");
+            return res.redirect(`/${slug}/auth/login`);
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            req.flash("error", "Invalid email or password");
+            return res.redirect(`/${slug}/auth/login`);
+        }
+
+        req.session.user = {
+            _id: user._id.toString(),
+            name: user.name,
+            email: user.email
+        };
+
+        // Check membership
+        const org = await Organization.findById(req.org._id);
+        const isMember = org.members.some(m => m.user.toString() === user._id.toString());
+
+        if (!isMember) {
+            // Auto-join as student
+            org.members.push({ user: user._id, role: "student" });
+            await org.save();
+            req.flash("success", `Welcome to ${org.name}! You've joined as a student. 🎓`);
+        } else {
+            req.flash("success", `Welcome back, ${user.name}! 👋`);
+        }
+
+        res.redirect(`/${slug}/events`);
+    } catch (err) {
+        req.flash("error", "Server error. Please try again.");
+        res.redirect(`/${slug}/auth/login`);
+    }
+};
+
+// POST /auth/register (global)
 exports.registerUser = async (req, res) => {
     const { name, email, password, confirmPassword } = req.body;
     try {
@@ -66,20 +144,72 @@ exports.registerUser = async (req, res) => {
         }
 
         const hashed = await bcrypt.hash(password, 10);
-        const user = await User.create({ name, email, password: hashed, role: "student" });
-
-        // req.session.user = {
-        //     _id: user._id.toString(),
-        //     name: user.name,
-        //     email: user.email,
-        //     role: user.role
-        // };
+        const user = await User.create({ name, email, password: hashed });
 
         req.flash("success", `Account created! Welcome, ${user.name} 🎉`);
         res.redirect("/auth/login");
     } catch (err) {
         req.flash("error", "Registration failed. Try again.");
         res.redirect("/auth/register");
+    }
+};
+
+// POST /:slug/auth/register (org-scoped — register and join org)
+exports.registerOrgUser = async (req, res) => {
+    const { name, email, password, confirmPassword } = req.body;
+    const slug = req.org.slug;
+
+    try {
+        if (password !== confirmPassword) {
+            req.flash("error", "Passwords do not match");
+            return res.redirect(`/${slug}/auth/register`);
+        }
+
+        let user = await User.findOne({ email });
+
+        if (user) {
+            // User exists — check if already a member
+            const org = await Organization.findById(req.org._id);
+            const isMember = org.members.some(m => m.user.toString() === user._id.toString());
+            if (isMember) {
+                req.flash("error", "This email is already registered and a member. Please login.");
+                return res.redirect(`/${slug}/auth/login`);
+            }
+
+            // Add to org as student
+            org.members.push({ user: user._id, role: "student" });
+            await org.save();
+
+            req.session.user = {
+                _id: user._id.toString(),
+                name: user.name,
+                email: user.email
+            };
+
+            req.flash("success", `Welcome to ${org.name}! You've joined as a student. 🎓`);
+            return res.redirect(`/${slug}/events`);
+        }
+
+        // Create new user
+        const hashed = await bcrypt.hash(password, 10);
+        user = await User.create({ name, email, password: hashed });
+
+        // Add to org as student
+        const org = await Organization.findById(req.org._id);
+        org.members.push({ user: user._id, role: "student" });
+        await org.save();
+
+        req.session.user = {
+            _id: user._id.toString(),
+            name: user.name,
+            email: user.email
+        };
+
+        req.flash("success", `Account created and joined ${org.name}! 🎉`);
+        res.redirect(`/${slug}/events`);
+    } catch (err) {
+        req.flash("error", "Registration failed. Try again.");
+        res.redirect(`/${slug}/auth/register`);
     }
 };
 
@@ -90,30 +220,18 @@ exports.logoutUser = (req, res) => {
     });
 };
 
-// GET /auth/admin/create-user  (admin only page)
+// GET /:slug/manage (admin only page — now part of orgController)
+// Kept here for backwards compat: /auth/admin/create-user redirects
 exports.showCreateUser = (req, res) => {
-    res.render("auth/create-user", { title: "Create User — Admin" });
+    if (req.org) {
+        return res.redirect(`/${req.org.slug}/manage`);
+    }
+    res.redirect("/");
 };
 
-// POST /auth/admin/create-user
 exports.createUserByAdmin = async (req, res) => {
-    const { name, email, password, role } = req.body;
-    try {
-        if (!["coordinator", "admin"].includes(role)) {
-            req.flash("error", "Invalid role selected");
-            return res.redirect("/auth/admin/create-user");
-        }
-        const exists = await User.findOne({ email });
-        if (exists) {
-            req.flash("error", "Email already exists");
-            return res.redirect("/auth/admin/create-user");
-        }
-        const hashed = await bcrypt.hash(password, 10);
-        await User.create({ name, email, password: hashed, role });
-        req.flash("success", `${role} account created for ${name}`);
-        res.redirect("/auth/admin/create-user");
-    } catch (err) {
-        req.flash("error", "Failed to create user");
-        res.redirect("/auth/admin/create-user");
+    if (req.org) {
+        return res.redirect(`/${req.org.slug}/manage`);
     }
+    res.redirect("/");
 };

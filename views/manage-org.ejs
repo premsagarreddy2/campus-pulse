@@ -1,0 +1,99 @@
+<%- include('partials/header') %>
+
+<div class="manage-container">
+  <a href="/<%= org.slug %>/events" style="color:var(--muted);text-decoration:none;font-size:0.88rem">← Back to Events</a>
+
+  <div style="margin-top:1.25rem;margin-bottom:2rem">
+    <h1 style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800">
+      Manage <span style="color:var(--accent)"><%= org.name %></span>
+    </h1>
+    <p style="color:var(--muted);margin-top:0.3rem">/<%= org.slug %> · <%= orgData.members.length %> members</p>
+  </div>
+
+  <!-- Add Member -->
+  <div class="form-card" style="margin-bottom:2rem">
+    <h3 style="font-family:'Syne',sans-serif;margin-bottom:1rem">➕ Add Member</h3>
+    <form action="/<%= org.slug %>/manage/add-member" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="user@college.edu" required>
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select name="role">
+            <option value="student">🎓 Student</option>
+            <option value="coordinator">🎯 Coordinator</option>
+            <option value="admin">👑 Admin</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm" style="width:auto">Add Member</button>
+    </form>
+  </div>
+
+  <!-- Members Table -->
+  <h3 style="font-family:'Syne',sans-serif;margin-bottom:1rem">👥 Members</h3>
+
+  <% if (orgData.members.length === 0) { %>
+    <div class="empty-state"><p>No members yet</p></div>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th style="text-align:center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orgData.members.forEach((m, i) => { %>
+          <tr>
+            <td style="color:var(--muted)"><%= i + 1 %></td>
+            <td><strong><%= m.user.name %></strong></td>
+            <td style="color:var(--muted)"><%= m.user.email %></td>
+            <td>
+              <span class="badge" style="background:color-mix(in srgb, var(--accent) 15%, transparent);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);">
+                <%= m.role === 'admin' ? '👑 Admin' : m.role === 'coordinator' ? '🎯 Coordinator' : '🎓 Student' %>
+              </span>
+            </td>
+            <td style="text-align:center">
+              <% if (m.user._id.toString() !== orgData.createdBy._id.toString()) { %>
+                <div style="display:flex;gap:0.4rem;justify-content:center;flex-wrap:wrap">
+                  <form action="/<%= org.slug %>/manage/change-role" method="POST" style="display:inline-flex;gap:0.3rem;align-items:center">
+                    <input type="hidden" name="userId" value="<%= m.user._id %>">
+                    <select name="role" style="padding:0.3rem 0.5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.78rem">
+                      <option value="student" <%= m.role === 'student' ? 'selected' : '' %>>Student</option>
+                      <option value="coordinator" <%= m.role === 'coordinator' ? 'selected' : '' %>>Coordinator</option>
+                      <option value="admin" <%= m.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm" style="width:auto;padding:0.3rem 0.6rem;font-size:0.75rem;background:color-mix(in srgb, var(--accent) 12%, transparent);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)">Update</button>
+                  </form>
+                  <form action="/<%= org.slug %>/manage/remove-member" method="POST" style="display:inline" onsubmit="return confirm('Remove this member?')">
+                    <input type="hidden" name="userId" value="<%= m.user._id %>">
+                    <button type="submit" class="btn btn-sm" style="width:auto;padding:0.3rem 0.6rem;font-size:0.75rem;background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.3)">Remove</button>
+                  </form>
+                </div>
+              <% } else { %>
+                <span style="font-size:0.78rem;color:var(--muted)">Creator</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <!-- Share Link -->
+  <div class="form-card" style="margin-top:2rem">
+    <h3 style="font-family:'Syne',sans-serif;margin-bottom:0.75rem">🔗 Share Invite Link</h3>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">Share this link so people can register and join your organization:</p>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:0.75rem 1rem;font-size:0.85rem;word-break:break-all;color:var(--accent)">
+      <%= typeof window !== 'undefined' ? window.location.origin : '' %>/<%= org.slug %>/auth/register
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

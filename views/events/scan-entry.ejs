@@ -3,7 +3,7 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <div style="max-width:520px;margin:2rem auto;padding:0 1rem">
-    <a href="/events/<%= event._id %>/participants" style="color:var(--muted);text-decoration:none;font-size:0.88rem">←
+    <a href="<%= basePath %>/events/<%= event._id %>/participants" style="color:var(--muted);text-decoration:none;font-size:0.88rem">←
       Back to Participants</a>
 
     <div style="margin-top:1.5rem">
@@ -42,8 +42,6 @@
           📷 Scan Next Student
         </button>
       </div>
-
-      <!-- Flash messages are handled by header partial already -->
 
       <div
         style="margin-top:1.2rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem">
@@ -88,12 +86,7 @@
 
     async function handleScan(decodedText) {
       document.getElementById("scan-status").textContent = "⏳ Verifying...";
-
-      // The QR URL looks like: /events/:id/verify-entry/:token
-      // Extract token from URL or use as-is if it's just the token
       let verifyUrl = decodedText;
-
-      // Navigate to the verify URL — server handles everything
       window.location.href = verifyUrl;
     }
 
