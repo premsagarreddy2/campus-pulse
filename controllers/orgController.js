@@ -61,7 +61,7 @@ exports.createOrg = async (req, res) => {
             name: name.trim(),
             slug,
             description: description ? description.trim() : "",
-            logo: req.file ? `/uploads/${req.file.filename}` : null,
+            logo: req.file ? req.file.path : null,
             createdBy: req.session.user._id,
             members: [{
                 user: req.session.user._id,

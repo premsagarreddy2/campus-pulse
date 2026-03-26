@@ -126,7 +126,7 @@ exports.createEvent = async (req, res) => {
             category: category || "Other",
             maxSeats: parseInt(maxSeats) || 0,
             qrToken,
-            image: req.file ? `/uploads/${req.file.filename}` : null,
+            image: req.file ? req.file.path : null,
             createdBy: req.user._id
         });
 
@@ -184,7 +184,7 @@ exports.updateEvent = async (req, res) => {
         event.category = category || event.category;
         event.maxSeats = parseInt(maxSeats) >= 0 ? parseInt(maxSeats) : event.maxSeats;
         event.durationHours = durationHours || event.durationHours;
-        if (req.file) event.image = `/uploads/${req.file.filename}`;
+        if (req.file) event.image = req.file.path;
 
         await event.save();
         req.flash("success", "Event updated ✅");
