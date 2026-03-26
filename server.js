@@ -69,6 +69,12 @@ app.use((req, res) => {
     res.status(404).render("404", { title: "Page Not Found" });
 });
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("Express Error:", err);
+    res.status(500).send(`<h2>Internal Server Error</h2><p>${err.message}</p>`);
+});
+
 const startServer = async () => {
     try {
         await connectDB();
