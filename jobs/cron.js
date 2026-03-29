@@ -7,10 +7,10 @@ cron.schedule("*/5 * * * *", async () => {
     try {
         // console.log("Checking for upcoming events to send reminders...");
         const now = new Date();
-        const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        const in1Hour = new Date(now.getTime() + 1 * 60 * 60 * 1000);
         
         const upcomingEvents = await Event.find({
-            date: { $gte: now, $lte: in24Hours },
+            date: { $gte: now, $lte: in1Hour },
             reminderSent: false
         }).populate("registeredStudents", "name email");
 
@@ -35,7 +35,7 @@ cron.schedule("*/5 * * * *", async () => {
                             </div>
                             <div style="padding: 20px;">
                                 <h3>Hi ${student.name},</h3>
-                                <p>This is a friendly reminder that the event <strong>${event.title}</strong> is starting within the next 24 hours.</p>
+                                <p>This is a friendly reminder that the event <strong>${event.title}</strong> is starting within the next hour.</p>
                                 <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #4f46e5; margin: 20px 0;">
                                     <p style="margin: 5px 0;"><strong>📅 Date & Time:</strong> ${new Date(event.date).toLocaleString()}</p>
                                     <p style="margin: 5px 0;"><strong>📍 Venue:</strong> ${event.venue}</p>
