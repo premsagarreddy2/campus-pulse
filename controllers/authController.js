@@ -59,10 +59,11 @@ exports.loginUser = async (req, res) => {
             return res.redirect("/auth/login");
         }
 
-        if (!user.isVerified) {
-            req.flash("error", "Your email is not verified. Please verify your account.");
-            return res.redirect(`/auth/verify-otp?email=${encodeURIComponent(user.email)}`);
-        }
+        // Temporarily bypassing verified check for Render deployment
+        // if (!user.isVerified) {
+        //     req.flash("error", "Your email is not verified. Please verify your account.");
+        //     return res.redirect(`/auth/verify-otp?email=${encodeURIComponent(user.email)}`);
+        // }
 
         // Save user to session (no role here — roles are per-org)
         req.session.user = {
@@ -108,10 +109,11 @@ exports.loginOrgUser = async (req, res) => {
             return res.redirect(`/${slug}/auth/login`);
         }
 
-        if (!user.isVerified) {
-            req.flash("error", "Your email is not verified. Please verify your account.");
-            return res.redirect(`/${slug}/auth/verify-otp?email=${encodeURIComponent(user.email)}`);
-        }
+        // Temporarily bypassing verified check for Render deployment
+        // if (!user.isVerified) {
+        //     req.flash("error", "Your email is not verified. Please verify your account.");
+        //     return res.redirect(`/${slug}/auth/verify-otp?email=${encodeURIComponent(user.email)}`);
+        // }
 
         req.session.user = {
             _id: user._id.toString(),
@@ -165,19 +167,28 @@ exports.registerUser = async (req, res) => {
             user.name = name;
             user.otp = otp;
             user.otpExpiresAt = otpExpiresAt;
+            user.isVerified = true; // Auto-verify for now
             await user.save();
         } else {
-            user = await User.create({ name, email, password: hashed, otp, otpExpiresAt, isVerified: false });
+            user = await User.create({ name, email, password: hashed, otp, otpExpiresAt, isVerified: true });
         }
 
-        await sendEmail({
+        // Send email in background without await so it doesn't hang the request on Render
+        sendEmail({
             email: user.email,
             subject: "Verify your email - Campus Pulse",
             html: `<h3>Welcome to Campus Pulse!</h3><p>Your OTP to verify your account is: <strong>${otp}</strong></p><p>It will expire in 10 minutes.</p>`
-        });
+        }).catch(err => console.error("SMTP Error skipped:", err));
 
-        req.flash("success", "OTP sent to your email. Please verify.");
-        res.redirect(`/auth/verify-otp?email=${encodeURIComponent(user.email)}`);
+        // Auto login
+        req.session.user = {
+            _id: user._id.toString(),
+            name: user.name,
+            email: user.email
+        };
+
+        req.flash("success", `Account created! Welcome, ${user.name} 🎉`);
+        res.redirect("/my-organizations");
     } catch (err) {
         console.error("Register Error:", err);
         req.flash("error", "Registration failed. Try again.");
@@ -232,21 +243,36 @@ exports.registerOrgUser = async (req, res) => {
             user.name = name;
             user.otp = otp;
             user.otpExpiresAt = otpExpiresAt;
+            user.isVerified = true; // Auto-verify
             await user.save();
         } else {
             // Create new user
-            user = await User.create({ name, email, password: hashed, otp, otpExpiresAt, isVerified: false });
+            user = await User.create({ name, email, password: hashed, otp, otpExpiresAt, isVerified: true });
         }
 
-        await sendEmail({
+        // Send email in background without await
+        sendEmail({
             email: user.email,
             subject: `Verify your email - ${req.org.name}`,
             html: `<h3>Welcome to ${req.org.name}!</h3><p>Your OTP to verify your account is: <strong>${otp}</strong></p><p>It will expire in 10 minutes.</p>`
-        });
+        }).catch(err => console.error("SMTP Error skipped:", err));
 
-        // We don't join org here, wait until verify-otp.
-        req.flash("success", "OTP sent to your email. Please verify.");
-        res.redirect(`/${slug}/auth/verify-otp?email=${encodeURIComponent(user.email)}`);
+        // Log them in immediately and join org
+        req.session.user = {
+            _id: user._id.toString(),
+            name: user.name,
+            email: user.email
+        };
+
+        const org = await Organization.findById(req.org._id);
+        const isNewMember = !org.members.some(m => m.user.toString() === user._id.toString());
+        if (isNewMember) {
+            org.members.push({ user: user._id, role: "student" });
+            await org.save();
+        }
+
+        req.flash("success", `Welcome to ${org.name}! 🎉`);
+        res.redirect(`/${slug}/events`);
     } catch (err) {
         console.error("Register Error:", err);
         req.flash("error", "Registration failed. Try again.");
