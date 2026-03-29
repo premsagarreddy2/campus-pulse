@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first'); // Fix for Render ENETUNREACH on IPv6
+
 const express = require("express");
 const dotenv = require("dotenv");
 const session = require("express-session");
