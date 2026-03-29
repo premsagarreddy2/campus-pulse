@@ -79,7 +79,10 @@ const startServer = async () => {
     try {
         await connectDB();
         const PORT = process.env.PORT || 5000;
-        app.listen(PORT, () => console.log(`🚀 Campus Pulse running at http://localhost:${PORT}`));
+        app.listen(PORT, () => {
+            console.log(`🚀 Campus Pulse running at http://localhost:${PORT}`);
+            require("./jobs/cron");
+        });
     } catch (error) {
         console.error("Failed to start:", error);
         process.exit(1);

@@ -3,7 +3,7 @@ const router = express.Router({ mergeParams: true });
 const {
     showLogin, showRegister, loginUser, registerUser, logoutUser,
     showOrgLogin, showOrgRegister, loginOrgUser, registerOrgUser,
-    showCreateUser, createUserByAdmin
+    showCreateUser, createUserByAdmin, showVerifyOtp, verifyOtp
 } = require("../controllers/authController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -12,6 +12,8 @@ router.get("/login", showLogin);
 router.post("/login", loginUser);
 router.get("/register", showRegister);
 router.post("/register", registerUser);
+router.get("/verify-otp", showVerifyOtp);
+router.post("/verify-otp", verifyOtp);
 router.get("/logout", logoutUser);
 
 // Legacy route redirects

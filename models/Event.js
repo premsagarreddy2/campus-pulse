@@ -52,6 +52,10 @@ const eventSchema = new mongoose.Schema(
         registeredStudents: [
             { type: mongoose.Schema.Types.ObjectId, ref: "User" }
         ],
+        reminderSent: {
+            type: Boolean,
+            default: false
+        }
     },
     { timestamps: true }
 );
