@@ -49,6 +49,20 @@
         </div>
       </div>
 
+      <div class="form-row">
+        <div class="form-group">
+          <label>Registration Type *</label>
+          <select name="isPaid" id="isPaidSelect" onchange="toggleFeeInput()">
+            <option value="false" <%= event && !event.isPaid ? 'selected' : '' %>>Free</option>
+            <option value="true" <%= event && event.isPaid ? 'selected' : '' %>>Paid</option>
+          </select>
+        </div>
+        <div class="form-group" id="feeGroup" style="<%= event && event.isPaid ? '' : 'display:none;' %>">
+          <label>Registration Fee (₹) *</label>
+          <input type="number" name="registrationFee" id="registrationFee" value="<%= event ? event.registrationFee : 0 %>" min="0" step="1" <%= event && event.isPaid ? 'required' : '' %>>
+        </div>
+      </div>
+
       <div class="form-group">
         <label>Event Image (optional)</label>
         <input type="file" name="image" accept="image/*" style="color:var(--muted)">
@@ -61,6 +75,22 @@
         <button type="submit" class="btn btn-primary"><%= event ? 'Save Changes' : 'Publish Event' %></button>
       </div>
     </form>
+
+    <script>
+      function toggleFeeInput() {
+        const isPaid = document.getElementById('isPaidSelect').value === 'true';
+        const feeGroup = document.getElementById('feeGroup');
+        const feeInput = document.getElementById('registrationFee');
+        if (isPaid) {
+          feeGroup.style.display = 'block';
+          feeInput.required = true;
+        } else {
+          feeGroup.style.display = 'none';
+          feeInput.required = false;
+          feeInput.value = 0;
+        }
+      }
+    </script>
 
     <div style="margin-top:1rem">
       <a href="<%= basePath %>/events" class="btn btn-outline">← Cancel</a>

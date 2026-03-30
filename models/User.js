@@ -17,14 +17,8 @@ const userSchema = new mongoose.Schema(
         },
         isVerified: {
             type: Boolean,
-            default: false,
+            default: true, // Auto-verified on registration
         },
-        otp: {
-            type: String,
-        },
-        otpExpiresAt: {
-            type: Date,
-        }
         // NOTE: role has been removed from User model.
         // Roles are now per-organization, stored in Organization.members[].role
     },

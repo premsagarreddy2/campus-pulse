@@ -7,7 +7,8 @@ const {
     showEditForm, updateEvent, deleteEvent,
     registerForEvent, getMyEvents, getEventParticipants,
     showQRPage, markAttendanceByQR, manualMarkAttendance,
-    showStudentQR, showScanPage, verifyStudentEntry
+    showStudentQR, showScanPage, verifyStudentEntry,
+    createPaymentOrder, verifyPayment
 } = require("../controllers/eventController");
 
 // IMPORTANT: specific routes before :id
@@ -23,6 +24,8 @@ router.put("/:id", protect, requireOrgMember, authorize("admin", "coordinator"),
 router.delete("/:id", protect, requireOrgMember, authorize("admin", "coordinator"), deleteEvent);
 
 router.post("/:id/register", protect, requireOrgMember, authorize("student"), registerForEvent);
+router.post("/:id/create-order", protect, requireOrgMember, authorize("student"), createPaymentOrder);
+router.post("/:id/verify-payment", protect, requireOrgMember, authorize("student"), verifyPayment);
 router.get("/:id/my-qr", protect, requireOrgMember, authorize("student"), showStudentQR);
 router.get("/:id/participants", protect, requireOrgMember, authorize("admin", "coordinator"), getEventParticipants);
 router.post("/:id/manual-attend", protect, requireOrgMember, authorize("admin", "coordinator"), manualMarkAttendance);

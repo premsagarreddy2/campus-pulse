@@ -13,6 +13,7 @@
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem">
       <span class="badge badge-<%= event.category %>"><%= event.catEmoji %> <%= event.category %></span>
       <span class="badge badge-<%= event.status %>"><%= event.status %></span>
+      <span class="badge badge-price" style="background: <%= event.isPaid ? 'var(--yellow)' : 'var(--green)' %>; color: #000"><%= event.isPaid ? '₹' + event.registrationFee : 'Free' %></span>
     </div>
     <h1 class="detail-title"><%= event.title %></h1>
     <p style="color:var(--muted);font-size:0.88rem">Created by <strong style="color:var(--text)"><%= event.createdBy.name %></strong></p>
@@ -36,9 +37,13 @@
         <% } else if (event.maxSeats > 0 && event.registeredStudents.length >= event.maxSeats) { %>
           <button class="btn btn-muted" style="width:auto" disabled>Event is Full</button>
         <% } else { %>
-          <form action="<%= basePath %>/events/<%= event._id %>/register" method="POST" style="display:inline">
-            <button type="submit" class="btn btn-primary" style="width:auto;padding:0.7rem 2rem">Register for this Event →</button>
-          </form>
+          <% if (event.isPaid) { %>
+            <button class="btn btn-primary" id="payButton" style="width:auto;padding:0.7rem 2rem">Pay ₹<%= event.registrationFee %> & Register →</button>
+          <% } else { %>
+            <form action="<%= basePath %>/events/<%= event._id %>/register" method="POST" style="display:inline">
+              <button type="submit" class="btn btn-primary" style="width:auto;padding:0.7rem 2rem">Register for this Event →</button>
+            </form>
+          <% } %>
         <% } %>
       <% } else if (user && (userRole === 'admin' || userRole === 'coordinator')) { %>
         <div class="btn-group" style="flex-wrap:wrap">
@@ -97,5 +102,77 @@
     </div>
   </div>
 </div>
+
+<% if (event.isPaid && user && userRole === 'student' && !isRegistered && event.status !== 'Completed' && (event.maxSeats === 0 || event.registeredStudents.length < event.maxSeats)) { %>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    document.getElementById('payButton').onclick = async function (e) {
+      e.preventDefault();
+      try {
+        const response = await fetch('<%= basePath %>/events/<%= event._id %>/create-order', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        const result = await response.json();
+        
+        if (!response.ok) {
+          alert('Error: ' + result.error);
+          return;
+        }
+
+        const options = {
+          "key": result.key_id,
+          "amount": result.order.amount,
+          "currency": result.order.currency,
+          "name": "<%= event.title %>",
+          "description": "Registration Fee",
+          "order_id": result.order.id,
+          "handler": function (response) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<%= basePath %>/events/<%= event._id %>/verify-payment';
+            
+            const pId = document.createElement('input');
+            pId.type = 'hidden';
+            pId.name = 'razorpay_payment_id';
+            pId.value = response.razorpay_payment_id;
+            
+            const oId = document.createElement('input');
+            oId.type = 'hidden';
+            oId.name = 'razorpay_order_id';
+            oId.value = response.razorpay_order_id;
+            
+            const sig = document.createElement('input');
+            sig.type = 'hidden';
+            sig.name = 'razorpay_signature';
+            sig.value = response.razorpay_signature;
+
+            form.appendChild(pId);
+            form.appendChild(oId);
+            form.appendChild(sig);
+            document.body.appendChild(form);
+            form.submit();
+          },
+          "prefill": {
+            "name": "<%= user.name %>",
+            "email": "<%= user.email %>"
+          },
+          "theme": {
+            "color": "#6366f1"
+          }
+        };
+        const rzp1 = new Razorpay(options);
+        rzp1.on('payment.failed', function (response){
+          alert('Payment Failed! ' + response.error.description);
+        });
+        rzp1.open();
+      } catch (error) {
+        alert('Something went wrong. Please try again later.');
+      }
+    };
+  </script>
+<% } %>
 
 <%- include('../partials/footer') %>

@@ -38,7 +38,15 @@ const organizationSchema = new mongoose.Schema(
             ref: "User",
             required: true
         },
-        members: [memberSchema]
+        members: [memberSchema],
+        razorpayKeyId: {
+            type: String,
+            default: null
+        },
+        razorpayKeySecret: {
+            type: String,
+            default: null
+        }
     },
     { timestamps: true }
 );

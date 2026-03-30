@@ -248,3 +248,22 @@ exports.changeRole = async (req, res) => {
         res.redirect(`/${req.org.slug}/manage`);
     }
 };
+
+// POST /:slug/manage/razorpay-config
+exports.updateRazorpayConfig = async (req, res) => {
+    try {
+        const { keyId, keySecret } = req.body;
+        const org = await Organization.findById(req.org._id);
+
+        org.razorpayKeyId = keyId ? keyId.trim() : null;
+        org.razorpayKeySecret = keySecret ? keySecret.trim() : null;
+
+        await org.save();
+
+        req.flash("success", "✅ Razorpay configuration updated");
+        res.redirect(`/${req.org.slug}/manage`);
+    } catch (err) {
+        req.flash("error", "Failed to save Razorpay configuration");
+        res.redirect(`/${req.org.slug}/manage`);
+    }
+};

@@ -1,6 +1,7 @@
 const Event = require("../models/Event");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
+const Razorpay = require("razorpay");
 
 const CATEGORIES = ["Technical", "Non-Technical", "Sports", "Cultural", "Workshop", "Other"];
 const CAT_EMOJI = { Technical: "🖥", "Non-Technical": "🎭", Sports: "⚽", Cultural: "🎨", Workshop: "🔧", Other: "📌" };
@@ -116,7 +117,7 @@ exports.showCreateForm = (req, res) => {
 exports.createEvent = async (req, res) => {
     const basePath = `/${req.org.slug}`;
     try {
-        const { title, description, date, venue, durationHours, category, maxSeats } = req.body;
+        const { title, description, date, venue, durationHours, category, maxSeats, isPaid, registrationFee } = req.body;
         const qrToken = crypto.randomBytes(32).toString("hex");
 
         await Event.create({
@@ -125,6 +126,8 @@ exports.createEvent = async (req, res) => {
             durationHours: durationHours || 2,
             category: category || "Other",
             maxSeats: parseInt(maxSeats) || 0,
+            isPaid: isPaid === 'true',
+            registrationFee: isPaid === 'true' ? Number(registrationFee) : 0,
             qrToken,
             image: req.file ? req.file.path : null,
             createdBy: req.user._id
@@ -176,7 +179,7 @@ exports.updateEvent = async (req, res) => {
             return res.redirect(`${basePath}/events`);
         }
 
-        const { title, description, date, venue, category, maxSeats, durationHours } = req.body;
+        const { title, description, date, venue, category, maxSeats, durationHours, isPaid, registrationFee } = req.body;
         event.title = title || event.title;
         event.description = description || event.description;
         event.date = date || event.date;
@@ -184,6 +187,8 @@ exports.updateEvent = async (req, res) => {
         event.category = category || event.category;
         event.maxSeats = parseInt(maxSeats) >= 0 ? parseInt(maxSeats) : event.maxSeats;
         event.durationHours = durationHours || event.durationHours;
+        event.isPaid = isPaid === 'true';
+        event.registrationFee = event.isPaid ? Number(registrationFee) : 0;
         if (req.file) event.image = req.file.path;
 
         await event.save();
@@ -251,6 +256,107 @@ exports.registerForEvent = async (req, res) => {
     } catch (err) {
         req.flash("error", "Registration failed: " + err.message);
         res.redirect(`${basePath}/events`);
+    }
+};
+
+// POST /:slug/events/:id/create-order
+exports.createPaymentOrder = async (req, res) => {
+    try {
+        const Organization = require("../models/Organization");
+        const event = await Event.findOne({ _id: req.params.id, organization: req.org._id });
+        if (!event || !event.isPaid) {
+            return res.status(400).json({ error: "Invalid event or not a paid event" });
+        }
+
+        const org = await Organization.findById(req.org._id);
+        const keyId = org.razorpayKeyId || process.env.RAZORPAY_KEY_ID;
+        const keySecret = org.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+
+        if (!keyId || !keySecret) {
+            return res.status(500).json({ error: "Razorpay is not configured for this organization" });
+        }
+
+        const razorpay = new Razorpay({
+            key_id: keyId,
+            key_secret: keySecret
+        });
+
+        const options = {
+            amount: event.registrationFee * 100, // Amount in paise
+            currency: "INR",
+            receipt: `receipt_ev_${event._id.toString().substring(0, 6)}_${Date.now()}`
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.status(200).json({ order, key_id: keyId });
+    } catch (err) {
+        console.error("Razorpay order error:", err);
+        res.status(500).json({ error: "Failed to create payment order" });
+    }
+};
+
+// POST /:slug/events/:id/verify-payment
+exports.verifyPayment = async (req, res) => {
+    const basePath = `/${req.org.slug}`;
+    try {
+        const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+        const Organization = require("../models/Organization");
+        const event = await Event.findOne({ _id: req.params.id, organization: req.org._id });
+
+        if (!event || !event.isPaid) {
+            req.flash("error", "Invalid event or not a paid event");
+            return res.redirect(`${basePath}/events/${req.params.id}`);
+        }
+
+        const org = await Organization.findById(req.org._id);
+        const keySecret = org.razorpayKeySecret || process.env.RAZORPAY_KEY_SECRET;
+
+        if (!keySecret) {
+            req.flash("error", "Razorpay configuration missing on server");
+            return res.redirect(`${basePath}/events/${req.params.id}`);
+        }
+
+        const generatedSignature = crypto.createHmac("sha256", keySecret)
+            .update(razorpay_order_id + "|" + razorpay_payment_id)
+            .digest("hex");
+
+        if (generatedSignature !== razorpay_signature) {
+            req.flash("error", "Payment verification failed — invalid signature");
+            return res.redirect(`${basePath}/events/${req.params.id}`);
+        }
+
+        if (event.registeredStudents.some(s => s.toString() === req.user._id.toString())) {
+            req.flash("error", "You are already registered");
+            return res.redirect(`${basePath}/events/${req.params.id}`);
+        }
+
+        if (event.maxSeats > 0 && event.registeredStudents.length >= event.maxSeats) {
+            req.flash("error", "This event is full!");
+            return res.redirect(`${basePath}/events/${req.params.id}`);
+        }
+
+        const studentQRToken = crypto.randomBytes(32).toString("hex");
+
+        event.payments.push({
+            student: req.user._id,
+            paymentId: razorpay_payment_id,
+            orderId: razorpay_order_id,
+            signature: razorpay_signature,
+            amount: event.registrationFee,
+            status: "success"
+        });
+        event.registeredStudents.push(req.user._id);
+        event.studentQRs.set(req.user._id.toString(), studentQRToken);
+
+        await event.save();
+
+        req.flash("success", "Payment successful! You are now registered. 🎉");
+        res.redirect(`${basePath}/events/${req.params.id}`);
+
+    } catch (err) {
+        console.error("Payment verification error:", err);
+        req.flash("error", "An error occurred verifying your payment.");
+        res.redirect(`${basePath}/events/${req.params.id}`);
     }
 };
 

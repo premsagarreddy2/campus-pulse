@@ -10,6 +10,32 @@
     <p style="color:var(--muted);margin-top:0.3rem">/<%= org.slug %> · <%= orgData.members.length %> members</p>
   </div>
 
+  <!-- Razorpay Config -->
+  <div class="form-card" style="margin-bottom:2rem; border: 1px solid var(--accent); background: rgba(99, 102, 241, 0.03);">
+    <h3 style="font-family:'Syne',sans-serif;margin-bottom:0.5rem">💳 Payment Configuration (Razorpay)</h3>
+    <p style="color:var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem;">
+      Payments for your events will go directly to your Razorpay account. 
+      <br><span style="color:var(--red)">Note: If not configured, students won't be able to pay for your paid events.</span>
+    </p>
+    
+    <form action="/<%= org.slug %>/manage/razorpay-config" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Razorpay Key ID</label>
+          <input type="text" name="keyId" value="<%= orgData.razorpayKeyId || '' %>" placeholder="rzp_test_..." required>
+        </div>
+        <div class="form-group">
+          <label>Razorpay Key Secret</label>
+          <input type="password" name="keySecret" value="<%= orgData.razorpayKeySecret ? '********' : '' %>" placeholder="Required for verifying payments" required>
+        </div>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 1rem;">
+        Find these in your Razorpay Dashboard > Settings > API Keys.
+      </p>
+      <button type="submit" class="btn btn-primary btn-sm" style="width:auto">Save Payment Keys</button>
+    </form>
+  </div>
+
   <!-- Add Member -->
   <div class="form-card" style="margin-bottom:2rem">
     <h3 style="font-family:'Syne',sans-serif;margin-bottom:1rem">➕ Add Member</h3>

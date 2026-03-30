@@ -55,7 +55,19 @@ const eventSchema = new mongoose.Schema(
         reminderSent: {
             type: Boolean,
             default: false
-        }
+        },
+        // Razorpay Payment Integration
+        isPaid: { type: Boolean, default: false },
+        registrationFee: { type: Number, default: 0 },
+        payments: [{
+            student: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+            paymentId: { type: String, required: true },
+            orderId: { type: String, required: true },
+            signature: { type: String, required: true },
+            amount: { type: Number, required: true },
+            status: { type: String, enum: ["success", "failed"], default: "success" },
+            paidAt: { type: Date, default: Date.now }
+        }]
     },
     { timestamps: true }
 );
