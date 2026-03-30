@@ -51,8 +51,6 @@ const organizationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Ensure slug uniqueness index
-organizationSchema.index({ slug: 1 }, { unique: true });
 // Fast member lookups
 organizationSchema.index({ "members.user": 1 });
 
